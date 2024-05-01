@@ -23,7 +23,6 @@ fn main() -> anyhow::Result<()> {
             // }
             // let json  = serde_json::to_string_pretty(&ret)?;
             // fs::write(opts.output, json)?;
-        
     }
 
     Ok(())
