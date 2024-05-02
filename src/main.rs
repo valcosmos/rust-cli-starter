@@ -1,7 +1,7 @@
 // rcli csv -i input.csv -o output.json --header -d ','
 
 use clap::Parser;
-use rcli::{process_csv, Opts, SubCommand};
+use rcli::{process_csv, process_genpass, Opts, SubCommand};
 
 fn main() -> anyhow::Result<()> {
     let opts = Opts::parse();
@@ -16,19 +16,29 @@ fn main() -> anyhow::Result<()> {
             };
             process_csv(&opts.input, output, opts.format)?;
         } // let mut reader = Reader::from_path(opts.input)?;
-          // let mut ret = Vec::with_capacity(128);
-          // // let records = reader
-          // //     .deserialize()
-          // //     .map(|record| record.unwrap())
-          // //     .collect::<Vec<Player>>();
-          // // println!("{:?}", records);
-          // for result in reader.deserialize() {
-          //     let record: Player = result?;
-          //     println!("{:?}", record);
-          //     ret.push(record);
-          // }
-          // let json  = serde_json::to_string_pretty(&ret)?;
-          // fs::write(opts.output, json)?;
+        // let mut ret = Vec::with_capacity(128);
+        // // let records = reader
+        // //     .deserialize()
+        // //     .map(|record| record.unwrap())
+        // //     .collect::<Vec<Player>>();
+        // // println!("{:?}", records);
+        // for result in reader.deserialize() {
+        //     let record: Player = result?;
+        //     println!("{:?}", record);
+        //     ret.push(record);
+        // }
+        // let json  = serde_json::to_string_pretty(&ret)?;
+        // fs::write(opts.output, json)?;
+        SubCommand::GenPass(opts) => {
+            // println!("Generate password: {:?}", opts)
+            process_genpass(
+                opts.length,
+                opts.uppercase,
+                opts.lowercase,
+                opts.number,
+                opts.symbol,
+            )?;
+        }
     }
 
     Ok(())
