@@ -7,4 +7,4 @@ GET http://localhost:8080/abc.toml
 
 
 ### test static file with tower-http
-GET http://localhost:8080/Cargo.toml
+GET http://localhost:8080/tower/Cargo.toml
