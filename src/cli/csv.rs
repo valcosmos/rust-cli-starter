@@ -2,6 +2,8 @@ use std::{fmt, str::FromStr};
 
 use clap::Parser;
 
+use crate::CmdExecutor;
+
 use super::verify_file;
 
 #[derive(Debug, Parser)]
@@ -27,6 +29,17 @@ pub enum OutputFormat {
     Json,
     Yaml,
     // Toml,
+}
+
+impl CmdExecutor for CsvOpts {
+    async fn execute(self) -> anyhow::Result<()> {
+        let output = if let Some(output) = self.output {
+            output
+        } else {
+            format!("output.{}", self.format)
+        };
+        crate::process_csv(&self.input, output, self.format)
+    }
 }
 
 impl From<OutputFormat> for &'static str {

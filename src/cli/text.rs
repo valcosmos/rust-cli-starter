@@ -1,5 +1,11 @@
-use std::{fmt, path::PathBuf, str::FromStr};
+use std::{fmt, fs, path::PathBuf, str::FromStr};
 
+use crate::{
+    get_content, get_reader, process_text_key_generate, process_text_sign, process_text_verify,
+    CmdExecutor,
+};
+use anyhow::Ok;
+use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
 use clap::Parser;
 
 use super::{verify_file, verify_path};
@@ -48,6 +54,53 @@ pub struct KeyGenerateOpts {
 pub enum TextSignFormat {
     Blake3,
     Ed25519,
+}
+
+impl CmdExecutor for TextSignOpts {
+    async fn execute(self) -> anyhow::Result<()> {
+        let mut reader = get_reader(&self.input)?;
+        let key = get_content(&self.key)?;
+        let sig = process_text_sign(&mut reader, &key, self.format)?;
+        // base64 output
+        let encoded = URL_SAFE_NO_PAD.encode(sig);
+        println!("{}", encoded);
+        Ok(())
+    }
+}
+
+impl CmdExecutor for TextVerifyOpts {
+    async fn execute(self) -> anyhow::Result<()> {
+        let mut reader = get_reader(&self.input)?;
+        let key = get_content(&self.key)?;
+        let decoded = URL_SAFE_NO_PAD.decode(&self.sig)?;
+        let verified = process_text_verify(&mut reader, &key, &decoded, self.format)?;
+        if verified {
+            println!("✓ Signature verified");
+        } else {
+            println!("⚠ Signature not verified");
+        }
+        Ok(())
+    }
+}
+
+impl CmdExecutor for KeyGenerateOpts {
+    async fn execute(self) -> anyhow::Result<()> {
+        let key = process_text_key_generate(self.format)?;
+        for (k, v) in key {
+            fs::write(self.output_path.join(k), v)?;
+        }
+        Ok(())
+    }
+}
+
+impl CmdExecutor for TextSubCommand {
+    async fn execute(self) -> anyhow::Result<()> {
+        match self {
+            TextSubCommand::Sign(opts) => opts.execute().await,
+            TextSubCommand::Verify(opts) => opts.execute().await,
+            TextSubCommand::Generate(opts) => opts.execute().await,
+        }
+    }
 }
 
 fn parse_text_sign_format(format: &str) -> Result<TextSignFormat, anyhow::Error> {
